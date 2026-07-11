@@ -1,0 +1,11 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /account
+Disallow: /cart
+Disallow: /checkout
+Disallow: /order-success
+Disallow: /verify-otp
+Disallow: /reset-password
+
+Sitemap: https://www.lumiere-jewelry.com/sitemap.xml

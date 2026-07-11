@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+@theme {
+  --color-noir: #0F0F0F;
+  --color-ivory: #F8F7F4;
+  --color-champagne: #C8A96A;
+  --color-pure-white: #FFFFFF;
+
+  --font-heading: "Playfair Display", "Cormorant Garamond", serif;
+  --font-body: "Inter", "Manrope", sans-serif;
+
+  --radius-luxury: 16px;
+}
+
+html {
+  overflow-x: hidden;
+}
+
+body {
+  background-color: var(--color-ivory);
+  color: var(--color-noir);
+  font-family: var(--font-body);
+  overflow-x: hidden;
+  width: 100%;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+}
