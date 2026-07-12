@@ -51,10 +51,12 @@ const userSchema = new mongoose.Schema(
     otp: {
       type: String,
       default: null,
+      select: false,
     },
     otpExpires: {
       type: Date,
       default: null,
+      select: false,
     },
     wishlist: [
       {

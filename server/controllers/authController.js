@@ -54,7 +54,7 @@ export const verifyOtp = async (req, res) => {
   try {
     const { userId, otp } = req.body;
 
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).select("+otp +otpExpires");
     if (!user) return res.status(404).json({ message: "User not found" });
 
     if (user.isVerified) {
@@ -175,7 +175,7 @@ export const resetPassword = async (req, res) => {
   try {
     const { userId, otp, newPassword } = req.body;
 
-    const user = await User.findById(userId).select("+password");
+    const user = await User.findById(userId).select("+password +otp +otpExpires");
     if (!user) return res.status(404).json({ message: "User not found" });
 
     if (user.otp !== otp || user.otpExpires < Date.now()) {

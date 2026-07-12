@@ -4,6 +4,7 @@ import crypto from "crypto";
 import Order from "../models/Order.js";
 import Cart from "../models/Cart.js";
 import Product from "../models/Product.js";
+import { reduceStockSafely } from "../utils/stockHelper.js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const razorpay = new Razorpay({
@@ -32,6 +33,15 @@ export const createOrder = async (req, res) => {
     const cart = await Cart.findOne({ user: req.user._id });
     if (!cart || cart.items.length === 0) {
       return res.status(400).json({ message: "Cart is empty" });
+    }
+
+    for (const item of cart.items) {
+      const product = await Product.findById(item.product);
+      if (!product || product.stock < item.quantity) {
+        return res.status(400).json({
+          message: `"${item.name}" only has ${product?.stock ?? 0} left in stock. Please update your cart.`,
+        });
+      }
     }
 
     const totals = calculateTotals(cart);
@@ -122,26 +132,35 @@ export const verifyRazorpayPayment = async (req, res) => {
     const order = await Order.findById(orderId);
     if (!order) return res.status(404).json({ message: "Order not found" });
 
+    const stockResult = await reduceStockSafely(order.items);
+
     order.isPaid = true;
     order.paidAt = Date.now();
-    order.orderStatus = "Confirmed";
     order.paymentResult = {
       id: razorpay_payment_id,
       status: "success",
       updateTime: new Date().toISOString(),
     };
 
-    await order.save();
-
-    // Reduce stock
-    for (const item of order.items) {
-      await Product.findByIdAndUpdate(item.product, {
-        $inc: { stock: -item.quantity },
-      });
+    if (stockResult.success) {
+      order.orderStatus = "Confirmed";
     }
+    // If stock ran out, order stays "Processing" (payment is still recorded as
+    // received since Razorpay already captured it) so an admin can follow up
+    // manually rather than silently overselling.
+
+    await order.save();
 
     // Clear the user's cart
     await Cart.findOneAndUpdate({ user: req.user._id }, { items: [], coupon: {}, giftWrap: false });
+
+    if (!stockResult.success) {
+      return res.status(200).json({
+        message: `Payment received, but "${stockResult.failedItemName}" just sold out. Our team will contact you about a refund or replacement.`,
+        stockIssue: true,
+        order,
+      });
+    }
 
     res.status(200).json({ message: "Payment verified", order });
   } catch (error) {
@@ -164,6 +183,11 @@ export const getOrderById = async (req, res) => {
   try {
     const order = await Order.findById(req.params.id).populate("user", "name email");
     if (!order) return res.status(404).json({ message: "Order not found" });
+
+    const isOwner = order.user?._id?.toString() === req.user._id.toString();
+    if (!isOwner && req.user.role !== "admin") {
+      return res.status(403).json({ message: "Not authorized to view this order" });
+    }
 
     res.status(200).json(order);
   } catch (error) {
@@ -208,24 +232,38 @@ export const confirmStripePayment = async (req, res) => {
     const order = await Order.findById(orderId);
     if (!order) return res.status(404).json({ message: "Order not found" });
 
+    if (order.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Not authorized to confirm this order" });
+    }
+
     if (!order.isPaid) {
+      const stockResult = await reduceStockSafely(order.items);
+
       order.isPaid = true;
       order.paidAt = Date.now();
-      order.orderStatus = "Confirmed";
       order.paymentResult = {
         status: "success",
         updateTime: new Date().toISOString(),
       };
-      await order.save();
 
-      for (const item of order.items) {
-        await Product.findByIdAndUpdate(item.product, { $inc: { stock: -item.quantity } });
+      if (stockResult.success) {
+        order.orderStatus = "Confirmed";
       }
+
+      await order.save();
 
       await Cart.findOneAndUpdate(
         { user: order.user },
         { items: [], coupon: {}, giftWrap: false }
       );
+
+      if (!stockResult.success) {
+        return res.status(200).json({
+          message: `Payment received, but "${stockResult.failedItemName}" just sold out. Our team will contact you about a refund or replacement.`,
+          stockIssue: true,
+          order,
+        });
+      }
     }
 
     res.status(200).json({ message: "Payment confirmed", order });
@@ -241,12 +279,19 @@ export const confirmCodOrder = async (req, res) => {
     const order = await Order.findById(orderId);
     if (!order) return res.status(404).json({ message: "Order not found" });
 
+    if (order.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Not authorized to confirm this order" });
+    }
+
+    const stockResult = await reduceStockSafely(order.items);
+    if (!stockResult.success) {
+      return res.status(409).json({
+        message: `"${stockResult.failedItemName}" just sold out. Please remove or update it in your cart and try again.`,
+      });
+    }
+
     order.orderStatus = "Confirmed";
     await order.save();
-
-    for (const item of order.items) {
-      await Product.findByIdAndUpdate(item.product, { $inc: { stock: -item.quantity } });
-    }
 
     await Cart.findOneAndUpdate(
       { user: order.user },

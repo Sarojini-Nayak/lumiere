@@ -71,7 +71,7 @@ const Navbar = () => {
           <div className="flex items-center gap-4">
             <button
               onClick={() => setMenuOpen(true)}
-              className={`md:hidden ${solid ? "text-noir" : "text-ivory"}`}
+              className={`lg:hidden ${solid ? "text-noir" : "text-ivory"}`}
               aria-label="Open menu"
             >
               <Menu size={22} strokeWidth={1.5} />
@@ -101,7 +101,7 @@ const Navbar = () => {
           </div>
 
           {/* Center: nav links */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden lg:flex items-center gap-8">
             {navLinks.map((link) => (
               <Link
                 key={link.name}
@@ -116,7 +116,7 @@ const Navbar = () => {
           </nav>
 
           {/* Right: icons */}
-          <div className={`hidden md:flex items-center gap-5 ${solid ? "text-noir" : "text-ivory"}`}>
+          <div className={`hidden lg:flex items-center gap-5 ${solid ? "text-noir" : "text-ivory"}`}>
             <button onClick={() => setSearchOpen(true)} aria-label="Search">
               <Search size={19} strokeWidth={1.5} />
             </button>
@@ -190,23 +190,19 @@ const Navbar = () => {
             </div>
           </div>
 
-          {/* Mobile: search, account, cart */}
-          <div className="md:hidden flex items-center gap-4">
+          {/* Mobile: search, wishlist, cart, account */}
+          <div className="lg:hidden flex items-center gap-4">
             <button onClick={() => setSearchOpen(true)} aria-label="Search" className={solid ? "text-noir" : "text-ivory"}>
               <Search size={20} strokeWidth={1.5} />
             </button>
-            {user ? (
-              <button
-                onClick={() => setAccountOpen(!accountOpen)}
-                className="w-7 h-7 rounded-full bg-champagne text-noir flex items-center justify-center text-[12px] font-body uppercase"
-              >
-                {user.name?.charAt(0) || "U"}
-              </button>
-            ) : (
-              <Link to="/login" className={solid ? "text-noir" : "text-ivory"} aria-label="Sign in">
-                <User size={20} strokeWidth={1.5} />
-              </Link>
-            )}
+            <Link to="/wishlist" className={`relative ${solid ? "text-noir" : "text-ivory"}`} aria-label="Wishlist">
+              <Heart size={20} strokeWidth={1.5} />
+              {wishlistCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-champagne text-noir text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-body">
+                  {wishlistCount}
+                </span>
+              )}
+            </Link>
             <Link to="/cart" className={`relative ${solid ? "text-noir" : "text-ivory"}`} aria-label="Cart">
               <ShoppingBag size={20} strokeWidth={1.5} />
               {cartCount > 0 && (
@@ -215,6 +211,19 @@ const Navbar = () => {
                 </span>
               )}
             </Link>
+            {user ? (
+              <Link
+                to="/account"
+                aria-label="My account"
+                className="w-7 h-7 rounded-full bg-champagne text-noir flex items-center justify-center text-[12px] font-body uppercase"
+              >
+                {user.name?.charAt(0) || "U"}
+              </Link>
+            ) : (
+              <Link to="/login" className={solid ? "text-noir" : "text-ivory"} aria-label="Sign in">
+                <User size={20} strokeWidth={1.5} />
+              </Link>
+            )}
           </div>
         </div>
       </header>
