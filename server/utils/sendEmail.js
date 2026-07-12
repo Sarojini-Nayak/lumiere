@@ -1,47 +1,22 @@
-import nodemailer from "nodemailer";
-import dns from "dns";
+import { Resend } from "resend";
 
-// Nodemailer has no working "force IPv4" option — passing `family: 4` to
-// createTransport is silently ignored. Internally it resolves both A and
-// AAAA records for the SMTP host and picks one at RANDOM on every connection
-// (see lib/shared/index.js formatDNSValue). On Render's free tier, outbound
-// IPv6 isn't routable, so roughly half of all sends failed with ENETUNREACH
-// whenever it happened to pick an IPv6 address for smtp.gmail.com.
-//
-// Fix: resolve the IPv4 address ourselves and connect to that IP directly,
-// while keeping `servername` set to the real hostname so TLS/STARTTLS
-// certificate validation (and Gmail's SNI-based routing) still works.
-const resolve4 = (hostname) =>
-  new Promise((resolve, reject) => {
-    dns.resolve4(hostname, (err, addresses) => {
-      if (err || !addresses?.length) return reject(err || new Error("No IPv4 address found"));
-      resolve(addresses[0]);
-    });
-  });
+// Render's free web services block outbound SMTP ports (25, 465, 587) —
+// see https://render.com/changelog/free-web-services-will-no-longer-allow-outbound-traffic-to-smtp-ports
+// Resend sends over a normal HTTPS API call instead of SMTP, so it works
+// fine on Render's free tier with no port restrictions to work around.
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendEmail = async (to, subject, html) => {
-  const smtpHost = process.env.SMTP_HOST;
-  const ipv4Address = await resolve4(smtpHost);
-
-  const transporter = nodemailer.createTransport({
-    host: ipv4Address,
-    port: process.env.SMTP_PORT,
-    secure: false,
-    tls: {
-      servername: smtpHost, // keep TLS validation/SNI tied to the real hostname
-    },
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
-
-  await transporter.sendMail({
-    from: `"Lumière" <${process.env.SMTP_USER}>`,
+  const { error } = await resend.emails.send({
+    from: process.env.RESEND_FROM_EMAIL, // e.g. "Lumière <onboarding@resend.dev>" for testing, or your verified domain sender
     to,
     subject,
     html,
   });
+
+  if (error) {
+    throw new Error(error.message || "Failed to send email via Resend");
+  }
 };
 
 export default sendEmail;
