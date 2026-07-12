@@ -1,12 +1,13 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import authImage from "../assets/craftsmanship-hero.png";
 
 const AuthLayout = ({ title, subtitle, children }) => {
   return (
     <div className="min-h-screen flex">
       <div className="hidden md:block md:w-1/2 relative">
         <img
-          src="https://images.unsplash.com/photo-1611591437281-460bfbe1220a?q=80&w=1200&auto=format&fit=crop"
+          src={authImage}
           alt="Lumière"
           className="w-full h-full object-cover"
         />
@@ -29,8 +30,8 @@ const AuthLayout = ({ title, subtitle, children }) => {
           <Link to="/" className="md:hidden font-heading text-noir text-lg tracking-[0.28em] block mb-10 text-center">
             LUMIÈRE
           </Link>
-          <h1 className="font-heading text-noir text-3xl">{title}</h1>
-          {subtitle && <p className="font-body text-noir/50 text-[14px] mt-2">{subtitle}</p>}
+          <h1 className="font-heading text-noir text-3xl text-center">{title}</h1>
+          {subtitle && <p className="font-body text-noir/50 text-[14px] mt-2 text-center">{subtitle}</p>}
           <div className="mt-8">{children}</div>
         </motion.div>
       </div>

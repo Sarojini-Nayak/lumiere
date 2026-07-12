@@ -26,6 +26,11 @@ connectDB();
 
 const app = express();
 
+// Render sits in front of the app as a reverse proxy — trust its single hop
+// so express-rate-limit (and req.ip generally) sees the real client IP from
+// X-Forwarded-For instead of Render's internal proxy IP.
+app.set("trust proxy", 1);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(sanitizeMiddleware);
