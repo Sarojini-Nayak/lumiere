@@ -30,15 +30,16 @@ export const registerUser = async (req, res) => {
       otpExpires,
     });
 
-    try {
-      await sendEmail(
-        email,
-        "Verify your Lumière account",
-        `<h2>Welcome to Lumière</h2><p>Your OTP is: <b>${otp}</b></p><p>This code expires in 10 minutes.</p>`
-      );
-    } catch (emailErr) {
+    // Don't make the client wait for the SMTP round-trip to finish —
+    // send the response as soon as the account exists, and let the email
+    // go out in the background. Failures are still logged either way.
+    sendEmail(
+      email,
+      "Verify your Lumière account",
+      `<h2>Welcome to Lumière</h2><p>Your OTP is: <b>${otp}</b></p><p>This code expires in 10 minutes.</p>`
+    ).catch((emailErr) => {
       console.log("Email sending failed:", emailErr.message);
-    }
+    });
 
     res.status(201).json({
       message: "Registered successfully. Please verify OTP sent to your email.",
@@ -151,15 +152,13 @@ export const forgotPassword = async (req, res) => {
     user.otpExpires = Date.now() + 10 * 60 * 1000;
     await user.save();
 
-    try {
-      await sendEmail(
-        email,
-        "Reset your Lumière password",
-        `<h2>Password Reset</h2><p>Your OTP is: <b>${otp}</b></p><p>This code expires in 10 minutes.</p>`
-      );
-    } catch (emailErr) {
+    sendEmail(
+      email,
+      "Reset your Lumière password",
+      `<h2>Password Reset</h2><p>Your OTP is: <b>${otp}</b></p><p>This code expires in 10 minutes.</p>`
+    ).catch((emailErr) => {
       console.log("Email sending failed:", emailErr.message);
-    }
+    });
 
     res.status(200).json({
       message: "OTP sent to your email",
