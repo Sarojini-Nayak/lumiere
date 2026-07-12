@@ -4,6 +4,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import path from "path";
+import dns from "dns";
 import { fileURLToPath } from "url";
 import connectDB from "./config/db.js";
 import sanitizeMiddleware from "./middleware/sanitizeMiddleware.js";
@@ -17,6 +18,14 @@ import userRoutes from "./routes/userRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
 import couponRoutes from "./routes/couponRoutes.js";
 import cmsRoutes from "./routes/cmsRoutes.js";
+
+// Render's outbound network can't route IPv6, but Gmail's SMTP host has both
+// A and AAAA records — without this, Node sometimes picks the IPv6 address
+// and every SMTP connection fails with ENETUNREACH. This forces IPv4 for
+// every DNS lookup in the process (not just nodemailer's), which is the
+// actual documented fix — nodemailer doesn't reliably honor a `family`
+// option passed directly to it.
+dns.setDefaultResultOrder("ipv4first");
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
