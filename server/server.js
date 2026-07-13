@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import compression from "compression";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
 import path from "path";
@@ -40,6 +41,7 @@ const app = express();
 // X-Forwarded-For instead of Render's internal proxy IP.
 app.set("trust proxy", 1);
 
+app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(sanitizeMiddleware);
@@ -54,7 +56,13 @@ app.use(
 
 // Serve locally-stored product images (Cloudinary handles admin-uploaded
 // images, but seeded/local images are read straight from this folder)
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use(
+  "/uploads",
+  express.static(path.join(__dirname, "uploads"), {
+    maxAge: "7d",
+    immutable: true,
+  })
+);
 
 app.use("/api/auth", authRoutes);
 app.use("/api/categories", categoryRoutes);
