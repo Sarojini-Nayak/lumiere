@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import authImage from "../assets/craftsmanship-hero.png";
+import authImage from "../assets/hero.jpeg";
 
 const AuthLayout = ({ title, subtitle, children }) => {
   return (
