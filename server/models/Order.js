@@ -40,7 +40,10 @@ const orderSchema = new mongoose.Schema(
     // Set when a Razorpay order is created for this document. Verification
     // looks the order up by this field (not by client-supplied orderId) so a
     // valid signature for one order can't be replayed against a different one.
-    razorpayOrderId: { type: String, default: null },
+    // sparse: true means the unique constraint only applies to documents where
+    // this field is actually set - Stripe/COD orders (where it's always null)
+    // don't collide with each other.
+    razorpayOrderId: { type: String, default: null, unique: true, sparse: true },
     paymentResult: {
       id: String,
       status: String,
