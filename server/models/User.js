@@ -42,21 +42,11 @@ const userSchema = new mongoose.Schema(
     },
     isVerified: {
       type: Boolean,
-      default: false,
+      default: true,
     },
     isBlocked: {
       type: Boolean,
       default: false,
-    },
-    otp: {
-      type: String,
-      default: null,
-      select: false,
-    },
-    otpExpires: {
-      type: Date,
-      default: null,
-      select: false,
     },
     wishlist: [
       {

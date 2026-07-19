@@ -1,10 +1,13 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import AuthLayout from "../layouts/AuthLayout";
 import axiosInstance from "../utils/axiosInstance";
+import { setCredentials } from "../redux/slices/authSlice";
 
 const Register = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -17,7 +20,8 @@ const Register = () => {
     setLoading(true);
     try {
       const res = await axiosInstance.post("/auth/register", form);
-      navigate("/verify-otp", { state: { userId: res.data.userId, email: form.email } });
+      dispatch(setCredentials({ user: res.data.user, token: res.data.token }));
+      navigate("/");
     } catch (err) {
       setError(err.response?.data?.message || "Something went wrong. Please try again.");
     } finally {

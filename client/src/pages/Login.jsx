@@ -60,9 +60,6 @@ const Login = () => {
         <div>
           <div className="flex items-center justify-between">
             <label className="font-body text-noir/60 text-[12px] tracking-wide uppercase">Password</label>
-            <Link to="/forgot-password" className="text-champagne text-[12px] font-body hover:underline underline-offset-4">
-              Forgot password?
-            </Link>
           </div>
           <input
             type="password"
