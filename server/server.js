@@ -1,6 +1,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import helmet from "helmet";
 import compression from "compression";
 import cookieParser from "cookie-parser";
 import morgan from "morgan";
@@ -8,6 +9,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import connectDB from "./config/db.js";
 import sanitizeMiddleware from "./middleware/sanitizeMiddleware.js";
+import { generalLimiter } from "./middleware/rateLimitMiddleware.js";
 import authRoutes from "./routes/authRoutes.js";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
@@ -32,6 +34,11 @@ const app = express();
 // X-Forwarded-For instead of Render's internal proxy IP.
 app.set("trust proxy", 1);
 
+// crossOriginResourcePolicy defaults to "same-origin" in helmet, which would
+// block the client (on Vercel) from loading images served from /uploads on
+// this API (on Render) - they're different origins, so this needs to allow
+// cross-origin reads while keeping helmet's other protections.
+app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -44,6 +51,7 @@ app.use(
     credentials: true,
   })
 );
+app.use("/api", generalLimiter);
 
 // Serve locally-stored product images (Cloudinary handles admin-uploaded
 // images, but seeded/local images are read straight from this folder)

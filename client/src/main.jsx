@@ -10,7 +10,7 @@ import { store } from './redux/store.js'
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <Provider store={store}>
-      <GoogleOAuthProvider clientId="207297751846-dlqt8jc6n87s286bv7npnshrr4jfku30.apps.googleusercontent.com">
+      <GoogleOAuthProvider clientId="860610491879-0921mik1ao7tf53bhvkc96jtq3t874uf.apps.googleusercontent.com">
         <BrowserRouter>
           <App />
         </BrowserRouter>

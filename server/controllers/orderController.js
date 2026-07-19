@@ -68,6 +68,9 @@ export const createStripeSession = async (req, res) => {
     const { orderId } = req.body;
     const order = await Order.findById(orderId);
     if (!order) return res.status(404).json({ message: "Order not found" });
+    if (order.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Not authorized to pay for this order" });
+    }
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -97,12 +100,20 @@ export const createRazorpayOrder = async (req, res) => {
     const { orderId } = req.body;
     const order = await Order.findById(orderId);
     if (!order) return res.status(404).json({ message: "Order not found" });
+    if (order.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Not authorized to pay for this order" });
+    }
 
     const razorpayOrder = await razorpay.orders.create({
       amount: Math.round(order.totalPrice * 100),
       currency: "INR",
       receipt: order._id.toString(),
     });
+
+    // Bind this Order document to the Razorpay order that was actually created,
+    // so verification can look it up by this instead of trusting a client-supplied orderId.
+    order.razorpayOrderId = razorpayOrder.id;
+    await order.save();
 
     res.status(200).json({
       razorpayOrderId: razorpayOrder.id,
@@ -118,7 +129,7 @@ export const createRazorpayOrder = async (req, res) => {
 // @desc Verify Razorpay payment
 export const verifyRazorpayPayment = async (req, res) => {
   try {
-    const { orderId, razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
 
     const generatedSignature = crypto
       .createHmac("sha256", process.env.RAZORPAY_KEY_SECRET)
@@ -129,8 +140,18 @@ export const verifyRazorpayPayment = async (req, res) => {
       return res.status(400).json({ message: "Payment verification failed" });
     }
 
-    const order = await Order.findById(orderId);
+    // Look the order up by the Razorpay order that was actually paid, not by a
+    // client-supplied orderId - otherwise a valid signature for one order could
+    // be replayed to mark a completely different order as paid.
+    const order = await Order.findOne({ razorpayOrderId: razorpay_order_id });
     if (!order) return res.status(404).json({ message: "Order not found" });
+    if (order.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Not authorized to confirm this order" });
+    }
+
+    if (order.isPaid) {
+      return res.status(200).json({ message: "Payment already verified", order });
+    }
 
     const stockResult = await reduceStockSafely(order.items);
 

@@ -10,3 +10,12 @@ export const authLimiter = rateLimit({
   legacyHeaders: false,
   message: { message: "Too many attempts. Please try again in a few minutes." },
 });
+
+// Generous general-purpose limiter for all other API routes - just enough to
+// blunt bot/scraper traffic without affecting normal browsing.
+export const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+});

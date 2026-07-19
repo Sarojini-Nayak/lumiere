@@ -37,6 +37,10 @@ const orderSchema = new mongoose.Schema(
       enum: ["stripe", "razorpay", "cod"],
       required: true,
     },
+    // Set when a Razorpay order is created for this document. Verification
+    // looks the order up by this field (not by client-supplied orderId) so a
+    // valid signature for one order can't be replayed against a different one.
+    razorpayOrderId: { type: String, default: null },
     paymentResult: {
       id: String,
       status: String,
