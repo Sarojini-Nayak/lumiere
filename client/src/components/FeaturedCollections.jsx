@@ -2,12 +2,12 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
 
-import ringImg from "../assets/ring.png";
-import necklaceImg from "../assets/neclace.png";
-import earringImg from "../assets/earing.png";
-import braceletImg from "../assets/bracelet.png";
-import weddingImg from "../assets/wedding.png";
-import newArrivalImg from "../assets/newarrival.png";
+import ringImg from "../assets/ring.webp";
+import necklaceImg from "../assets/neclace.webp";
+import earringImg from "../assets/earing.webp";
+import braceletImg from "../assets/bracelet.webp";
+import weddingImg from "../assets/wedding.webp";
+import newArrivalImg from "../assets/newarrival.webp";
 
 const collections = [
   {

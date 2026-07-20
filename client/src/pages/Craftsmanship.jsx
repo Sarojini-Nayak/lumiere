@@ -2,8 +2,8 @@ import { useRef } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Gem, Hammer, Sparkles, ShieldCheck } from "lucide-react";
-import craftHero from "../assets/craftsmanship-hero.png";
-import craftSetting from "../assets/craftsmanship-setting.png";
+import craftHero from "../assets/craftsmanship-hero.webp";
+import craftSetting from "../assets/craftsmanship-setting.webp";
 
 const process = [
   {
