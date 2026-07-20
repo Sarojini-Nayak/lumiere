@@ -30,11 +30,26 @@ const Craftsmanship = lazy(() => import("./pages/Craftsmanship"));
 import axiosInstance from "./utils/axiosInstance";
 import { setWishlistIds, clearWishlistState } from "./redux/slices/wishlistSlice";
 import { setCart, clearCartState } from "./redux/slices/cartSlice";
+import { setCredentials, logout } from "./redux/slices/authSlice";
 import AdminLayout from "./layouts/AdminLayout";
 
 function App() {
   const user = useSelector((state) => state.auth.user);
   const dispatch = useDispatch();
+
+  // The cached user in localStorage is just for a fast initial render - the
+  // httpOnly cookie is the actual source of truth. Verify against the
+  // server once on load and correct local state if the cookie is missing,
+  // expired, or was cleared (e.g. logged out on another device).
+  useEffect(() => {
+    if (user) {
+      axiosInstance
+        .get("/auth/me")
+        .then((res) => dispatch(setCredentials({ user: res.data.user })))
+        .catch(() => dispatch(logout()));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (user) {

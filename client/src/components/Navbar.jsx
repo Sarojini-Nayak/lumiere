@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Search, Heart, ShoppingBag, Menu, X, User, LogOut, Package } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "../redux/slices/authSlice";
+import axiosInstance from "../utils/axiosInstance";
 import SearchOverlay from "./SearchOverlay";
 
 const navLinks = [
@@ -51,7 +52,12 @@ const Navbar = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await axiosInstance.post("/auth/logout");
+    } catch {
+      // Even if the request fails, still clear local state below.
+    }
     dispatch(logout());
     setAccountOpen(false);
     navigate("/");

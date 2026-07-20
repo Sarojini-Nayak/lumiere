@@ -1,5 +1,9 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+// Only the user's display info is cached in localStorage - purely for a
+// fast, non-flickery initial UI on page load. It is NOT the source of
+// truth for auth state; the httpOnly cookie is, and App.jsx verifies
+// against the server via /auth/me on mount and corrects this if stale.
 const userFromStorage = localStorage.getItem("lumiere_user")
   ? JSON.parse(localStorage.getItem("lumiere_user"))
   : null;
@@ -8,20 +12,15 @@ const authSlice = createSlice({
   name: "auth",
   initialState: {
     user: userFromStorage,
-    token: localStorage.getItem("lumiere_token") || null,
   },
   reducers: {
     setCredentials: (state, action) => {
       state.user = action.payload.user;
-      state.token = action.payload.token;
       localStorage.setItem("lumiere_user", JSON.stringify(action.payload.user));
-      localStorage.setItem("lumiere_token", action.payload.token);
     },
     logout: (state) => {
       state.user = null;
-      state.token = null;
       localStorage.removeItem("lumiere_user");
-      localStorage.removeItem("lumiere_token");
     },
   },
 });

@@ -5,7 +5,6 @@ import { setCredentials } from "../../redux/slices/authSlice";
 
 const Profile = () => {
   const user = useSelector((state) => state.auth.user);
-  const token = useSelector((state) => state.auth.token);
   const dispatch = useDispatch();
 
   const [form, setForm] = useState({ name: user?.name || "", phone: user?.phone || "" });
@@ -18,7 +17,7 @@ const Profile = () => {
     setMessage(null);
     try {
       const res = await axiosInstance.put("/users/profile", form);
-      dispatch(setCredentials({ user: res.data.user, token }));
+      dispatch(setCredentials({ user: res.data.user }));
       setMessage({ type: "success", text: "Profile updated successfully." });
     } catch (err) {
       setMessage({ type: "error", text: err.response?.data?.message || "Something went wrong." });

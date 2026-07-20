@@ -21,7 +21,7 @@ const Login = () => {
     setLoading(true);
     try {
       const res = await axiosInstance.post("/auth/login", form);
-      dispatch(setCredentials({ user: res.data.user, token: res.data.token }));
+      dispatch(setCredentials({ user: res.data.user }));
       navigate("/");
     } catch (err) {
       setError(err.response?.data?.message || "Invalid email or password.");
@@ -36,7 +36,7 @@ const Login = () => {
       const res = await axiosInstance.post("/auth/google", {
         credential: credentialResponse.credential,
       });
-      dispatch(setCredentials({ user: res.data.user, token: res.data.token }));
+      dispatch(setCredentials({ user: res.data.user }));
       navigate("/");
     } catch (err) {
       setError("Google sign-in failed. Please try again.");

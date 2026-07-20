@@ -20,7 +20,7 @@ const Register = () => {
     setLoading(true);
     try {
       const res = await axiosInstance.post("/auth/register", form);
-      dispatch(setCredentials({ user: res.data.user, token: res.data.token }));
+      dispatch(setCredentials({ user: res.data.user }));
       navigate("/");
     } catch (err) {
       setError(err.response?.data?.message || "Something went wrong. Please try again.");
