@@ -25,11 +25,10 @@ export const registerUser = async (req, res) => {
       isVerified: true,
     });
 
-    const token = generateToken(user._id, user.role);
+    generateToken(res, user._id, user.role);
 
     res.status(201).json({
       message: "Registered successfully",
-      token,
       user: {
         id: user._id,
         name: user.name,
@@ -65,11 +64,10 @@ export const loginUser = async (req, res) => {
       return res.status(403).json({ message: "Your account has been blocked. Contact support." });
     }
 
-    const token = generateToken(user._id, user.role);
+    generateToken(res, user._id, user.role);
 
     res.status(200).json({
       message: "Login successful",
-      token,
       user: {
         id: user._id,
         name: user.name,
@@ -85,6 +83,18 @@ export const loginUser = async (req, res) => {
 // @desc Get logged-in user profile
 export const getMe = async (req, res) => {
   res.status(200).json({ user: req.user });
+};
+
+// @desc Log out - clears the auth cookie. JS can't clear an httpOnly
+// cookie itself, so this has to be a real request to the server.
+export const logoutUser = async (req, res) => {
+  res.cookie("token", "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    expires: new Date(0),
+  });
+  res.status(200).json({ message: "Logged out successfully" });
 };
 
 // @desc Google Login/Register
@@ -121,11 +131,10 @@ export const googleLogin = async (req, res) => {
       return res.status(403).json({ message: "Your account has been blocked. Contact support." });
     }
 
-    const token = generateToken(user._id, user.role);
+    generateToken(res, user._id, user.role);
 
     res.status(200).json({
       message: "Google login successful",
-      token,
       user: {
         id: user._id,
         name: user.name,
