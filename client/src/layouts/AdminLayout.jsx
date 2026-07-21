@@ -15,6 +15,7 @@ import {
   X,
 } from "lucide-react";
 import { logout } from "../redux/slices/authSlice";
+import axiosInstance from "../utils/axiosInstance";
 
 const navItems = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
@@ -103,7 +104,14 @@ const AdminLayout = () => {
             View Store
           </NavLink>
           <button
-            onClick={() => dispatch(logout())}
+            onClick={async () => {
+              try {
+                await axiosInstance.post("/auth/logout");
+              } catch {
+                // Even if the request fails, still clear local state below.
+              }
+              dispatch(logout());
+            }}
             className="w-full flex items-center gap-3 px-4 py-2.5 rounded-luxury text-[13.5px] text-ivory/70 hover:bg-red-500/10 hover:text-red-300 transition-colors"
           >
             <LogOut size={16} strokeWidth={1.5} />
